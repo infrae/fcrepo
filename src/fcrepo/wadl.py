@@ -89,29 +89,3 @@ class API(object):
             method_name = method.attrib['name']
             self.__dict__[method_id] = WADLMethod(method_id, method_name, self)
         
-
-if __name__ == '__main__':
-    conn = Connection('http://localhost:8080/fedora',
-                      username='fedoraAdmin',
-                      password='fedoraAdmin')
-    api = API(conn)
-    request = api.createObject(pid='newpid:foobar')
-    request.headers['Content-Type'] = 'text/xml; charset=utf-8'
-
-    foxml = '''<foxml:digitalObject VERSION="1.1" PID="newpid:foobar"
-    xmlns:foxml="info:fedora/fedora-system:def/foxml#">
-    <foxml:objectProperties>
-      <foxml:property NAME="info:fedora/fedora-system:def/model#state"
-       VALUE="Active"/>
-      <foxml:property NAME="info:fedora/fedora-system:def/model#label"
-       VALUE="Label"/>
-    </foxml:objectProperties></foxml:digitalObject>
-    '''
-    
-    response = request.submit(foxml)
-    
-    #request = api.getNextPID()
-    #response = request.submit(format=u'text/xml', namespace=u'test', numPIDs=12)
-
-    print response.status, response.read()
-    
