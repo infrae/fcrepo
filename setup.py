@@ -14,8 +14,8 @@ setup(
     license='BSD',
     entry_points= {
     'console_scripts': [
-        'install_fedora = fcrepo.tools:install_fedora',
-        'start_fedora = fcrepo.tools:start_fedora',
+        'install_fedora = fcrepo.scripts:install_fedora',
+        'start_fedora = fcrepo.scripts:start_fedora',
       ]
     },
     install_requires=[
