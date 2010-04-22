@@ -17,11 +17,10 @@ class FedoraConnectionException(Exception):
 
     def __repr__(self):
         return 'HTTP code=%s, Reason=%s, body=%s' % (
-                    self.httpcode, self.reason, self.body)
+                    self.httpcode, self.reason, self.body.splitlines()[0])
 
     def __str__(self):
-        return 'HTTP code=%s, reason=%s, body=%s' % (
-                    self.httpcode, self.reason, self.body)
+        return repr(self)
 
 
 class Connection(object):
@@ -49,15 +48,9 @@ class Connection(object):
         self.persistent = persistent
         self.reconnects = 0
         self.conn = httplib.HTTPConnection(self.host)
+
+        self.form_headers = {}
         
-        self.xmlheaders = {'Content-Type': 'text/xml; charset=utf-8'}
-        if not self.persistent:
-            self.xmlheaders['Connection'] = 'close'
-
-        self.form_headers = {
-                'Content-Type':
-                'application/x-www-form-urlencoded; charset=utf-8'}
-
         if not self.persistent:
             self.form_headers['Connection'] = 'close'
         
