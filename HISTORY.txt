@@ -1,0 +1,12 @@
+FCRepo Changes
+==============
+
+fcrepo 1.0a (unreleased)
+------------------------
+
+Changes
+~~~~~~~
+  - Initial Code release with working API-A, API-M
+    search and index search.
+
+

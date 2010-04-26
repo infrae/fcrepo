@@ -488,9 +488,9 @@ a batch size of 2
 RDF Index Search
 ----------------
 
-Besides search the DC datastream in the relational database, it's also possible
-to query the RELS-EXT datastream through the triplestore in the SPARQL 
-language.
+Besides searching the DC datastream in the relational database, 
+it's also possible to query the RELS-EXT datastream through the triplestore 
+in the SPARQL language.
 
 Let's find all objects that are part of the collection we created above in the
 RELS-EXT datastream example
@@ -507,5 +507,7 @@ RELS-EXT datastream example
    >>> result[0]['s']['value']
    u'info:fedora/foo:...'
 
+Other output formats and query languages can be specified as parameters, by
+default only SPARQL is supported.
 
-   
+

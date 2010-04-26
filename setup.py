@@ -1,12 +1,25 @@
 from setuptools import setup, find_packages
 from os.path import join, dirname
 
+HISTORY = join(dirname(__file__), 'HISTORY.txt')
+README = join(dirname(__file__), 'src', 'fcrepo', 'README.txt')
+
 setup(
     name='fcrepo',
     version='0.1',
     author='Infrae',
     author_email='jasper@infrae.com',
     description="API implementation for the Fedora Commons Repository platform",
+    long_description=(open(README).read()+
+                      '\n'+
+                      open(HISTORY).read()),
+    classifiers=["Development Status :: 3 - Alpha",
+                 "Programming Language :: Python",
+                 "License :: OSI Approved :: BSD License",
+                 "Topic :: Software Development :: Libraries :: Python Modules",
+                 "Environment :: Web Environment",
+                 "Intended Audience :: Science/Research"],
+
     packages=find_packages('src'),
     package_dir = {'': 'src'},
     include_package_data = True,
