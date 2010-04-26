@@ -302,8 +302,8 @@ or by calling the delete method on a datastream.
   >>> len(obj.datastreams())
   3
 
-RDF Metadata
-------------
+Special Datastreams
+~~~~~~~~~~~~~~~~~~~
 
 Besides the special 'DC' datastream which is always present, and is indexed
 in a relational database, there is another special datastream called 
@@ -355,17 +355,139 @@ in the DC datastream.
 
 We can also use RDF to create relations between objects.
 
-  >>> pid = client.getNextPID(u'foo')
-  >>> collection = client.createObject(pid, label=u'A test Collection')
+  >>> colpid = client.getNextPID(u'foo')
+  >>> collection = client.createObject(colpid, label=u'A test Collection')
   >>> ds[NS.fedora.isMemberOfCollection].append(
-  ...  {'value': u'info:fedora/%s' % pid, 'type':u'uri'})
+  ...  {'value': u'info:fedora/%s' % colpid, 'type':u'uri'})
   >>> ds.setContent()
   >>> print ds.getContent().read()
   <rdf:RDF ...>
     <rdf:Description rdf:about="info:fedora/foo:...">
-    <fedora:isMemberOfCollection rdf:resource="info:fedora/foo:..."></fedora:isMemberOfCollection>
+      <fedora:isMemberOfCollection rdf:resource="info:fedora/foo:..."></fedora:isMemberOfCollection>
       <rdfs:comment>A Comment set in RDF</rdfs:comment>
     </rdf:Description>
   </rdf:RDF>
+
+Notice that the Fedora PID needs to be converted to an URI before it can be
+referenced in RDF, this is done by prepending 'info:fedora/' to the PID.
+
   >>> print ds.predicates()
   ['http://www.w3.org/2000/01/rdf-schema#comment', 'info:fedora/fedora-system:def/relations-external#isMemberOfCollection']
+
+Service Definitions and Object Methods
+--------------------------------------
+
+Besides datastreams, a Fedora object can have methods registered to it through
+service definitions. We don't provide access to the service definitions and
+assume that all the methods have unique names
+
+  >>> obj.methods()
+  ['viewObjectProfile', 'viewMethodIndex', 'viewItemIndex', 'viewDublinCore']
+
+  >>> print obj.call('viewDublinCore').read()
+  <html ...>
+  ...
+  <td ...>My First Modified Datastream</td>
+  ...
+  </html>
+
+Searching Objects
+-----------------
+
+Fedora comes with simple search functionality based on the DC datastream.
+The following properties can be used to search on:
+
+ * cDate  
+ * contributor     
+ * coverage        
+ * creator 
+ * date    
+ * dcmDate 
+ * description     
+ * format  
+ * identifier      
+ * label   
+ * language        
+ * mDate   
+ * ownerId 
+ * pid     
+ * publisher       
+ * source  
+ * state   
+ * subject 
+ * title   
+ * type    
+ * rights
+
+Fedora has a query syntax where you can enter one or more conditions, separated by space.  Objects matching all conditions will be returned.
+A condition is a field (choose from the field names on the left) followed by an operator, followed by a value.
+The = operator will match if the field's entire value matches the value given.
+The ~ operator will match on phrases within fields, and accepts the ? and * wildcards.
+The <, >, <=, and >= operators can be used with numeric values, such as dates.
+
+Examples:
+
+  pid~demo:* description~fedora
+    Matches all demo objects with a description containing the word fedora.
+
+  cDate>=1976-03-04 creator~*n*
+    Matches objects created on or after March 4th, 1976 where at least one of the creators has an n in their name.
+
+  mDate>2002-10-2 mDate<2002-10-2T12:00:00
+    Matches objects modified sometime before noon (UTC) on October 2nd, 2002
+
+So let's create 5 objects which we can use to search on
+
+   >>> pids = pids = client.getNextPID(u'search', numPIDs=5)
+   >>> for pid in pids: client.createObject(pid, label=u'Search Test Object')
+   <fcrepo.client.FedoraObject object at ...>
+   <fcrepo.client.FedoraObject object at ...>
+   <fcrepo.client.FedoraObject object at ...>
+   <fcrepo.client.FedoraObject object at ...>
+   <fcrepo.client.FedoraObject object at ...>
+
+Now we'll search for these objects with a pid search, we also want the label
+returned from the search.
+
+   >>> client.searchObjects(u'pid~search:*', ['pid', 'label'])
+   <generator object searchObjects at ...>
+
+The search returns a generator, by default it queries the server for the
+first 10 objects, but if you iterate through the resultset and come to the end
+the next batch will automatically be added. To illustrate we will query with
+a batch size of 2
+
+   >>> results = client.searchObjects(u'pid~search:*', ['pid', 'label'],
+   ...                                maxResults=2)
+   >>> result_list = [r for r in results]
+   >>> len(result_list) >= 5
+   True
+   >>> result_list[0]['pid']
+   u'search:...'
+   >>> result_list[0]['label']
+   u'Search Test Object'
+
+RDF Index Search
+----------------
+
+Besides search the DC datastream in the relational database, it's also possible
+to query the RELS-EXT datastream through the triplestore in the SPARQL 
+language.
+
+Let's find all objects that are part of the collection we created above in the
+RELS-EXT datastream example
+
+   >>> sparql = '''prefix fedora: <%s>
+   ... select ?s where {?s fedora:isMemberOfCollection <info:fedora/%s>.}
+   ... ''' % (NS.fedora, colpid)
+   >>> result = client.searchTriples(sparql)
+   >>> result
+   <generator object searchTriples  at ...>
+   >>> result = list(result)
+   >>> len(result)
+   1
+   >>> result[0]['s']['value']
+   u'info:fedora/foo:...'
+
+
+   

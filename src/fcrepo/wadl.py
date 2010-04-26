@@ -32,6 +32,7 @@ class WADLRequest(object):
         self.headers = self.method.api.connection.form_headers.copy()
 
         self.param_types = {}
+        self.undocumented_params = {} # needed in searchOjbects
         self.default_values = {}
         
         for param in self.method.api.doc.xpath(
@@ -65,8 +66,10 @@ class WADLRequest(object):
             if param_type is bool:
                 value = unicode(param_type).lower()
             value = unicode(value)
-
             qs[param] = value
+        for param, value in self.undocumented_params.items():
+            if not param in qs:
+                qs[param] = value
         if qs:
             self.url = '%s?%s' % (self.url, urllib.urlencode(qs))
 

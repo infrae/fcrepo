@@ -1,3 +1,4 @@
+import urllib
 from collections import defaultdict
 
 from lxml import etree
@@ -93,6 +94,9 @@ class FedoraClient(object):
     def addDatastream(self, pid, dsid, body='', **params):
         if dsid == 'RELS-EXT' and not body:
             body = ('<rdf:RDF xmlns:rdf="%s"/>' % NS.rdf)
+            params['mimeType'] = u'application/rdf+xml'
+            params['formatURI'] = (
+                u'info:fedora/fedora-system:FedoraRELSExt-1.0')
         if params.get('controlGroup', u'X') == u'X':
             if not 'mimeType' in params:
                 params['mimeType'] = u'text/xml'
@@ -157,7 +161,112 @@ class FedoraClient(object):
     def deleteDatastream(self, pid, dsid, **params):
         request = self.api.deleteDatastream(pid=pid, dsID=dsid)
         return request.submit(**params)
+
+    def getAllObjectMethods(self, pid, **params):
+        params['format'] = u'text/xml'
+        request = self.api.getAllObjectMethods(pid=pid)
+        response = request.submit(**params)
+        xml = response.read()
+        doc = etree.fromstring(xml)
+        method_list = []
+        for sdef_el in doc:
+            sdef = sdef_el.attrib['pid']
+            for method_el in sdef_el:
+                method = method_el.attrib['name']
+                method_list.append((sdef, method))
+        response.close()
+        return method_list
+
+    def invokeSDefMethodUsingGET(self, pid, sdef, method, **params):
+        request = self.api.invokeSDefMethodUsingGET(pid=pid, sDef=sdef,
+                                                    method=method)
+        return request.submit(**params)
+
         
+    def searchObjects(self, query, fields, maxResults=10):
+        field_params = {}
+        assert isinstance(fields, list)
+        for field in fields:
+            field_params[field] = u'true'
+            
+        token = True
+        NS = 'http://www.fedora.info/definitions/1/0/types/'
+        while token:
+            if token is True:
+                token = False
+            request = self.api.searchObjects()
+            request.undocumented_params = field_params
+
+            if token:
+                response = request.submit(query=query,
+                                          sessionToken=token,
+                                          maxResults=maxResults,
+                                          resultFormat=u'text/xml')
+            else:
+                response = request.submit(query=query,
+                                          maxResults=maxResults,
+                                          resultFormat=u'text/xml')
+
+            xml = response.read()
+            response.close()
+            doc = etree.fromstring(xml)
+                
+            tokens = doc.xpath('//f:token/text()', namespaces={'f': NS})
+            if tokens:
+                token = tokens[0].decode('utf8')
+            else:
+                token = False
+            
+            for result in doc.xpath('//f:objectFields', namespaces={'f': NS}):
+                data = {}
+                for child in result:
+                    field_name = child.tag.split('}')[-1].decode('utf8')
+                    value = child.text
+                    if not isinstance(value, unicode):
+                        value = value.decode('utf8')
+                        data[field_name] = value
+                yield data
+
+                
+    def searchTriples(self, query, lang='sparql', format='Sparql',
+                      limit=100, type='tuples', dt='on'):
+        url = u'/risearch?%s' % urllib.urlencode({'query':query,
+                                                  'lang':lang,
+                                                  'flush': 'true',
+                                                  'format':format,
+                                                  'limit':limit,
+                                                  'type':type,
+                                                  'dt':dt})
+        headers = {'Accept:': 'text/xml'}
+        response = self.api.connection.open(url, '', headers, method='POST')
+        xml = response.read()
+        doc = etree.fromstring(xml)
+        NS = 'http://www.w3.org/2001/sw/DataAccess/rf1/result' # ouch
+        for result in doc.xpath('//sparql:result', namespaces={'sparql': NS}):
+            data = {}
+            for el in result:
+                name = el.tag.split('}')[-1]
+                value = {}
+                uri = el.attrib.get('uri')
+                if uri:
+                    value['value'] = uri.decode('utf8')
+                    value['type'] = 'uri'
+                else:
+                    value['type'] = 'literal'
+                    if isinstance(el.text, unicode):
+                        value['value'] = el.text
+                    else:
+                        value['value'] = el.text.decode('utf8')
+                    datatype = el.attrib.get('datatype')
+                    lang = el.attrib.get('lang')
+                    if datatype:
+                        value['datatype'] = datatype
+                    elif lang:
+                        value['lang'] = lang
+                data[name] = value
+            yield data
+        
+    
 class typedproperty(property):
     def __init__(self, fget, fset=None, fdel=None, doc=None, pytype=None):
         # like a normal property, but converts types to/from strings
@@ -180,6 +289,7 @@ class FedoraObject(object):
         self.client = client
         self._info = self.client.getObjectProfile(self.pid)
         self._dsids = None # load lazy
+        self._methods = None
         
     def _setProperty(self, name, value):
         msg = u'Changed %s object property' % name
@@ -222,6 +332,22 @@ class FedoraObject(object):
     def addDataStream(self, dsid, body='', **params):            
         self.client.addDatastream(self.pid, dsid, body, **params)
         self._dsids=None
+
+    def methods(self):
+        result = []
+        if self._methods is None:
+            self._methods = self.client.getAllObjectMethods(self.pid)
+        return [m[1] for m in self._methods]
+
+    def call(self, method_name, **params):
+        for sdef, method in self._methods:
+            if method == method_name:
+                break
+        else:
+            raise KeyError('No such method: %s' % method_name)
+        
+        return self.client.invokeSDefMethodUsingGET(self.pid, sdef,
+                                                    method, **params)
         
 class FedoraDataStream(object):
     def __init__(self, dsid, object):
