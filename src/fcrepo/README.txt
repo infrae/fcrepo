@@ -83,6 +83,17 @@ It's also possible to fetch an object with the client
   >>> print obj.label
   My First Test Object  
 
+Deleting objects can be done by calling the delete method on an object,
+or by passing the pid to the deleteObject method on the client.
+
+  >>> pid = client.getNextPID(u'foo')
+  >>> o = client.createObject(pid, label=u'About to be deleted')
+  >>> o.delete()
+  >>> o = client.getObject(pid)
+  Traceback (most recent call last):
+  ...
+  FedoraConnectionException: ...no path in db registry for [foo:...]
+
 FedoraObjects
 -------------
 
@@ -196,7 +207,7 @@ There are some additional properties, some can only be set:
   >>> ds.formatURI
   u'http://www.openarchives.org/OAI/2.0/oai_dc/'
 
-We can also get and get the content of the datastream
+We can also get and set the content of the datastream
 
   >>> xml = ds.getContent().read()
   >>> print xml
@@ -230,7 +241,8 @@ Let's try adding some datastreams, for example, we want to store some XML data:
   <foo></foo>
 
 We can also add Managed Content, this will be stored and managed by fedora,
-but it's not inline xml. We do this by setting the controlGroup param to 'M'
+but it's not inline xml. The data is stored in a seperate file on 
+the harddrive. We do this by setting the controlGroup param to 'M'
 
   >>> obj.addDataStream('TEXT', 'Hello!  ', label=u'Some Text',
   ...                   mimeType=u'text/plain', controlGroup=u'M', 
@@ -242,3 +254,118 @@ but it's not inline xml. We do this by setting the controlGroup param to 'M'
   0
   >>> print ds.getContent().read()
   Hello!
+
+For large files it might not be convenient to store them inside Fedora. 
+In this case the file can be hosted externally, and we store a datastream
+of controlGroup type 'E' (Externally referenced)
+
+  >>> obj.addDataStream('URL', controlGroup=u'E',
+  ...                   location=u'http://pypi.python.org/fcrepo')
+  >>> obj.datastreams()
+  ['DC', 'FOOXML', 'TEXT', 'URL']
+
+This datastream does not have any content, so trying to read the
+content will result in an error
+
+  >>> ds = obj['URL']
+  >>> ds.getContent()
+  Traceback (most recent call last):
+  ...
+  FedoraConnectionException:..."Error getting http://pypi.python.org/fcrepo"  .
+
+We can get the location though:
+
+  >>> ds.location
+  u'http://pypi.python.org/fcrepo'
+
+The last of the datastream types is an externally referenced stream that 
+redirects. This datastream has controlGroup 'R' (Redirect Referenced)
+
+  >>> obj.addDataStream('HOMEPAGE', controlGroup=u'R',
+  ...                   location=u'http://pypi.python.org/fcrepo')
+  >>> obj.datastreams()
+  ['DC', 'FOOXML', 'TEXT', 'URL', 'HOMEPAGE']
+
+This datastream works the same as an externally referenced stream. 
+
+
+A datastream can be deleted by using the python del keyword on the object,
+or by calling the delete method on a datastream.
+
+  >>> len(obj.datastreams())
+  5
+  >>> ds = obj['HOMEPAGE']
+  >>> ds.delete(logMessage=u'Removed Homepage DS')  
+  >>> len(obj.datastreams())
+  4
+  >>> del obj['URL']
+  >>> len(obj.datastreams())
+  3
+
+RDF Metadata
+------------
+
+Besides the special 'DC' datastream which is always present, and is indexed
+in a relational database, there is another special datastream called 
+'RELS-EXT'.
+This datastream should contain 'flat' RDFXML data which will be indexed in a
+triplestore. The RELS-EXT datastream has some additional methods to assist in 
+working with the RDF data.
+
+To create the RELS-EXT stream we don't need to supply an RDFXML file, it will
+create an empty one if no data is send.
+
+  >>> obj.addDataStream('RELS-EXT')
+  >>> ds = obj['RELS-EXT']
+
+Now we can add some RDF data. Each predicate contains a list of values, each
+value is a dictionary with a value and type key, and optionally a lang and
+datatype key. This is identical to the RDFJSON format.
+
+  >>> from fcrepo.utils import NS
+  >>> ds[NS.rdfs.comment].append(
+  ...       {'value': u'A Comment set in RDF', 'type': u'literal'})
+  >>> ds[NS.rdfs.comment]
+  [{'type': u'literal', 'value': u'A Comment set in RDF'}]
+  >>> NS.rdfs.comment in ds
+  True
+  >>> for predicate in ds: print predicate
+  http://www.w3.org/2000/01/rdf-schema#comment
+
+To save this we call setContent without any data. This will serialise the
+RDF statements to RDFXML and perform the save action
+   
+  >>> ds.setContent()
+  >>> print ds.getContent().read()
+  <rdf:RDF ...>
+    <rdf:Description rdf:about="info:fedora/foo:...">
+      <rdfs:comment>A Comment set in RDF</rdfs:comment>
+    </rdf:Description>
+  </rdf:RDF>
+
+Note that we are not allowed to add statements using the DC namespace.
+This will result in an error. I suppose this is because we should set it
+in the DC datastream.
+
+  >>> ds[NS.dc.title].append({'value': u'A title', 'type': 'literal'})
+  >>> ds.setContent()
+  Traceback (most recent call last):
+  ...
+  FedoraConnectionException: ... The RELS-EXT datastream has improper relationship assertion: dc:title.
+
+We can also use RDF to create relations between objects.
+
+  >>> pid = client.getNextPID(u'foo')
+  >>> collection = client.createObject(pid, label=u'A test Collection')
+  >>> ds[NS.fedora.isMemberOfCollection].append(
+  ...  {'value': u'info:fedora/%s' % pid, 'type':u'uri'})
+  >>> ds.setContent()
+  >>> print ds.getContent().read()
+  <rdf:RDF ...>
+    <rdf:Description rdf:about="info:fedora/foo:...">
+    <fedora:isMemberOfCollection rdf:resource="info:fedora/foo:..."></fedora:isMemberOfCollection>
+      <rdfs:comment>A Comment set in RDF</rdfs:comment>
+    </rdf:Description>
+  </rdf:RDF>
+  >>> print ds.predicates()
+  ['http://www.w3.org/2000/01/rdf-schema#comment', 'info:fedora/fedora-system:def/relations-external#isMemberOfCollection']

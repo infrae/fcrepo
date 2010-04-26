@@ -1,7 +1,10 @@
+from collections import defaultdict
+
 from lxml import etree
 from lxml.builder import ElementMaker
 
 from fcrepo.wadl import API
+from fcrepo.utils import NS, dict2rdfxml, rdfxml2dict
 
 NSMAP = {'foxml': 'info:fedora/fedora-system:def/foxml#'}
 
@@ -71,9 +74,13 @@ class FedoraClient(object):
             result[name] = value
         return result
 
-    def updateObject(self, pid, body='', **kwargs):
+    def updateObject(self, pid, body='', **params):
         request = self.api.updateObject(pid=pid)
-        response = request.submit(body, **kwargs)
+        response = request.submit(body, **params)
+
+    def deleteObject(self, pid, **params):
+        request = self.api.deleteObject(pid=pid)
+        response = request.submit(**params)
         
     def listDatastreams(self, pid):
         request = self.api.listDatastreams(pid=pid)
@@ -84,7 +91,8 @@ class FedoraClient(object):
         return doc.xpath('/objectDatastreams/datastream/@dsid')
 
     def addDatastream(self, pid, dsid, body='', **params):
-
+        if dsid == 'RELS-EXT' and not body:
+            body = ('<rdf:RDF xmlns:rdf="%s"/>' % NS.rdf)
         if params.get('controlGroup', u'X') == u'X':
             if not 'mimeType' in params:
                 params['mimeType'] = u'text/xml'
@@ -145,6 +153,10 @@ class FedoraClient(object):
     def getDatastream(self, pid, dsid):
         request = self.api.getDatastream(pid=pid, dsID=dsid)
         return request.submit()
+
+    def deleteDatastream(self, pid, dsid, **params):
+        request = self.api.deleteDatastream(pid=pid, dsID=dsid)
+        return request.submit(**params)
         
 class typedproperty(property):
     def __init__(self, fget, fset=None, fdel=None, doc=None, pytype=None):
@@ -200,6 +212,13 @@ class FedoraObject(object):
     def __getitem__(self, dsid):
         return FedoraDataStream(dsid, self)
 
+    def __delitem__(self, dsid):
+        self.client.deleteDatastream(self.pid, dsid)
+        self._dsids = None
+
+    def delete(self, **params):
+        self.client.deleteObject(self.pid, **params)
+        
     def addDataStream(self, dsid, body='', **params):            
         self.client.addDatastream(self.pid, dsid, body, **params)
         self._dsids=None
@@ -208,15 +227,34 @@ class FedoraDataStream(object):
     def __init__(self, dsid, object):
         self.object = object
         self.dsid = dsid
-
+        self._rdf = None
         self._info = self.object.client.getDatastreamProfile(self.object.pid,
                                                              self.dsid)
 
+    def _get_rdf(self):
+        if not self.dsid == 'RELS-EXT':
+            raise ValueError('Datastream has no RDF support')
+        if self._rdf is None:
+            rdfxml = self.getContent().read()
+            self._rdf = rdfxml2dict(rdfxml)
+        return self._rdf
+
+        
+    def delete(self, **params):
+        self.object.client.deleteDatastream(self.object.pid,
+                                            self.dsid,
+                                            **params)
+        self.object._dsids = None
 
     def getContent(self):
         return self.object.client.getDatastream(self.object.pid, self.dsid)
 
-    def setContent(self, data, **kwargs):
+    def setContent(self, data='', **kwargs):
+        if self.dsid == 'RELS-EXT' and not data:
+            rdf = self._get_rdf()
+            data = dict2rdfxml(self.object.pid, rdf)
+            self._rdf = None
+            
         if self._info['controlGroup'] == 'X':
             # for some reason we need to add 2 characters to the body
             # or we get a parsing error in fedora
@@ -271,3 +309,30 @@ class FedoraDataStream(object):
     controlGroup = property(lambda self: self._info['controlGroup'])
     size = typedproperty(lambda self: self._info['size'], pytype=int)
     checksum = property(lambda self: self._info['formatURI'])
+
+
+    def __setitem__(self, key, value):
+        rdf = self._get_rdf()
+        rdf[key]=value
+        
+    def __getitem__(self, key):
+        rdf = self._get_rdf()
+        return rdf[key]
+    
+    def __delitem__(self, key):
+        rdf = self._get_rdf()
+        del rdf[key]
+
+    def __contains__(self, key):
+        rdf = self._get_rdf()
+        return key in rdf
+
+    def __iter__(self):
+        rdf = self._get_rdf()
+        return rdf.__iter__()
+
+    def predicates(self):
+        rdf = self._get_rdf()
+        keys = rdf.keys()
+        keys.sort()
+        return keys
