@@ -202,8 +202,8 @@ There are some additional properties, some can only be set:
 
   >>> ds.mimeType
   u'text/xml'
-  >>> ds.size
-  381
+  >>> ds.size > 0
+  True
   >>> ds.formatURI
   u'http://www.openarchives.org/OAI/2.0/oai_dc/'
 

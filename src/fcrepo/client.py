@@ -241,7 +241,7 @@ class FedoraClient(object):
         response = self.api.connection.open(url, '', headers, method='POST')
         xml = response.read()
         doc = etree.fromstring(xml)
-        NS = 'http://www.w3.org/2001/sw/DataAccess/rf1/result' # ouch
+        NS = 'http://www.w3.org/2001/sw/DataAccess/rf1/result' # ouch, old!
         for result in doc.xpath('//sparql:result', namespaces={'sparql': NS}):
             data = {}
             for el in result:
