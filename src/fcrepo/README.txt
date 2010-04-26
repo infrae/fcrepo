@@ -2,28 +2,39 @@
 Fedora Commons Repository API
 =============================
 
-This package provides access to the Fedora Commons Repository.
+This package provides access to the `Fedora Commons Repository`_.
 
-It uses WADL, Web Application Description Language to parse the
+It uses WADL, `Web Application Description Language`_ to parse the
 WADL file that comes with FedoraCommons so it offers support for the
 complete REST API.
 On top of that a more highlevel abstraction is written, which will be
-demonstrated in this doctest.
+demonstrated in this `doctest`_.
+This package has been written for FedoraCommons 3.3, it has not been tested
+with older versions. REST API documentation can be found in the `Fedora wiki`_.
 
 This package can be installed using buildout which will also fetch 
-FedoraCommons 3.3. Use the following steps to install and run this doctest:
+FedoraCommons, and configure it for use. 
+Use the following steps to install and run this doctest::
 
-  python bootstrap.py
-  ./bin/buildout
-  ./bin/install_fedora
-  ./bin/start_fedora
-  ./bin/test
+   python bootstrap.py
+   ./bin/buildout
+   ./bin/install_fedora
+   ./bin/start_fedora
+   ./bin/test
+
+.. _Fedora Commons Repository: http://www.fedora-commons.org/
+.. _Web Application Description Language: http://www.w3.org/Submission/wadl/
+.. _Fedora wiki: http://www.fedora-commons.org/confluence/display/FCR30/REST+API
+.. _doctest: http://en.wikipedia.org/wiki/Doctest
+.. _REST API Documentation: http://www.fedora-commons.org/confluence/display/FCR30/REST+API
 
 Connecting
 ----------
 
-To connect to the running Fedora, we first need a connection. This code was
-mainly copied from "Epoz" duraspace module.
+To connect to the running Fedora, we first need a connection. The connection
+code was largely copied from `Etienne Posthumus ("Epoz") duraspace module`_.
+
+.. _Etienne Posthumus ("Epoz") duraspace module: http://bitbucket.org/epoz/duraspace
 
   >>> from fcrepo.connection import Connection
   >>> connection = Connection('http://localhost:8080/fedora', 
@@ -57,7 +68,7 @@ This method returns unicode strings or a list of unicode strings if
 multiple PIDs are requested. It wraps the getNextPID method from the
 WADL API, parses the result xml and uses better default arguments.
 
-Here's the same call through the WADL API:
+Here's the same call through the 'raw' WADL API:
 
   >>> print client.api.getNextPID().submit(namespace=u'foo', format=u'text/xml').read()
   <?xml  ...?>
@@ -106,7 +117,7 @@ of properties that can be get and set.
   >>> date = obj.lastModifiedDate
   >>> obj.label = u'Changed it!'
 
-This modified the label property on the Fedora server, the lastmodified date
+The last line modified the label property on the Fedora server, the lastmodified date
 should now have been updated:
 
   >>> obj.lastModifiedDate > date
@@ -114,8 +125,12 @@ should now have been updated:
   >>> print obj.label
   Changed it!
 
-This can also be used to set the state of a FedoraObject to inactive or deleted. 
-The following strings can be used: 'A' means active, 'I' means inactive, 'D' means deleted.
+Setting properties can also be used to change the state of a FedoraObject to inactive or deleted. 
+The following strings can be used: 
+
+  * `A` means active
+  * `I` means inactive
+  * `D` means deleted
 
   >>> obj.state = u'I'
 
@@ -153,7 +168,7 @@ the object to find the datastream ids or call the datastreams method:
   >>> 'DC' in obj
   True
 
-To actually get a datastream we can access it as if it's a dictionary
+To actually get a datastream we can access it as if it's a dictionary:
  
   >>> ds = obj['DC']
   >>> obj['FOO']
@@ -163,7 +178,7 @@ To actually get a datastream we can access it as if it's a dictionary
 
   
 A datastream has many properties, including label, state and createdDate, just
-like the Fedora object
+like the Fedora object:
 
   >>> print ds.label
   Dublin Core Record for this object
@@ -171,8 +186,8 @@ like the Fedora object
   >>> print ds.state
   A
 
-There are different types of datastreams, this one is of type 'X', which means it's
-stored inline in the FOXML file as XML.
+There are different types of datastreams, this one is of type 'X', which means
+the content is stored inline in the FOXML file as XML.
 
   >>> print ds.controlGroup
   X
@@ -198,7 +213,8 @@ Let's change the label, and see what happens:
   >>> ds.location
   u'foo:...+DC+DC.2'
 
-There are some additional properties, some can only be set:
+There are some additional properties, not all of them can be set.
+Have a look at the `REST API Documentation`_ for a full list
 
   >>> ds.mimeType
   u'text/xml'
@@ -207,7 +223,7 @@ There are some additional properties, some can only be set:
   >>> ds.formatURI
   u'http://www.openarchives.org/OAI/2.0/oai_dc/'
 
-We can also get and set the content of the datastream
+We can also get and set the content of the datastream:
 
   >>> xml = ds.getContent().read()
   >>> print xml
@@ -320,7 +336,9 @@ create an empty one if no data is send.
 
 Now we can add some RDF data. Each predicate contains a list of values, each
 value is a dictionary with a value and type key, and optionally a lang and
-datatype key. This is identical to the RDFJSON format.
+datatype key. This is identical to the `RDFJSON format`_.
+
+.. _RDFJSON format: http://n2.talis.com/wiki/RDF_JSON_Specification
 
   >>> from fcrepo.utils import NS
   >>> ds[NS.rdfs.comment].append(
