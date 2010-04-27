@@ -7,16 +7,21 @@ Info
 
 This package provides access to the `Fedora Commons Repository`_.
 
-It uses WADL, `Web Application Description Language`_ to parse the
-WADL file that comes with FedoraCommons so it offers support for the
+From the Fedora Commons Website:
+
+     Fedora (Flexible Extensible Digital Object Repository Architecture) was originally developed by researchers at Cornell University as an architecture for storing, managing, and accessing digital content in the form of digital objects inspired by the `Kahn and Wilensky`_ Framework.  Fedora defines a set of abstractions for expressing digital objects, asserting relationships among digital objects, and linking "behaviors" (i.e., services) to digital objects. The Fedora Repository Project (i.e., Fedora) implements the Fedora abstractions in a robust open source software system. 
+
+This package uses WADL, `Web Application Description Language`_ to parse the
+WADL file that comes with Fedora so it offers support for the
 complete REST API.
 On top of that a more highlevel abstraction is written, which will be
 demonstrated in this `doctest`_.
 This package has been written for FedoraCommons 3.3, it has not been tested
 with older versions. REST API documentation can be found in the `Fedora wiki`_.
 
-This package can be installed using buildout which will also fetch 
-FedoraCommons, and configure it for use. 
+
+This package can be installed using buildout which will also fetch the
+Fedora installer, and install it locally for testing purposes. 
 Use the following steps to install and run this doctest::
 
    python bootstrap.py
@@ -25,7 +30,11 @@ Use the following steps to install and run this doctest::
    ./bin/start_fedora
    ./bin/test
 
+This software has been developed using python2.6 on a linux system. Other
+platforms have not been tested at the moment.
+
 .. _Fedora Commons Repository: http://www.fedora-commons.org/
+.. _Kahn and Wilensky: http://www.cnri.reston.va.us/k-w.html
 .. _Web Application Description Language: http://www.w3.org/Submission/wadl/
 .. _Fedora wiki: http://www.fedora-commons.org/confluence/display/FCR30/REST+API
 .. _doctest: http://en.wikipedia.org/wiki/Doctest
@@ -48,7 +57,7 @@ code was largely copied from `Etienne Posthumus ("Epoz") duraspace module`_.
   ...                         password='fedoraAdmin')
 
 
-Now that we have a connection, we can create a FedoraClient
+Now that we have a connection, we can create a FedoraClient:
 
   >>> from fcrepo.client import FedoraClient
   >>> client = FedoraClient(connection)
@@ -56,7 +65,7 @@ Now that we have a connection, we can create a FedoraClient
 PIDs
 ~~~~
 
-A Fedora object needs a unique PID to function. The pid consists of a 
+A Fedora object needs a unique PID to function. The PID consists of a 
 namespace string, then a semicolon and then a string identifier. 
 You can create your own PIDs using a random UUID, but you can also use
 the nextPID feature of Fedora which returns an ascending number.
@@ -75,8 +84,9 @@ We can also get multiple PIDs at once
 This method returns unicode strings or a list of unicode strings if
 multiple PIDs are requested. 
 
-The client provides wrappers around the 'raw' fedora REST API which is 
-generated from the WADL file. Here's the same call through the 'raw' WADL API:
+The client abstraction provides wrappers around the 'low-level' 
+API code which is generated from the WADL file. 
+Here's the same call through the WADL API:
 
   >>> print client.api.getNextPID().submit(namespace=u'foo', format=u'text/xml').read()
   <?xml  ...?>
@@ -87,10 +97,14 @@ generated from the WADL file. Here's the same call through the 'raw' WADL API:
 So the client methods call the methods from the WADL API, 
 parse the resulting xml and uses sensible default arguments.
 
+This is how most client method calls work. 
+Normally you would never need to access the WADL API directly, 
+so let's move on.
+
 Creating Objects
 ~~~~~~~~~~~~~~~~
 
-Now that we can get PIDs we can move on and create a new object:
+Now that we can get PIDs we can use them and create a new object:
 
   >>> pid = client.getNextPID(u'foo')
   >>> obj = client.createObject(pid, label=u'My First Test Object')
@@ -102,11 +116,22 @@ You can't create an object with the same PID twice.
   ...
   FedoraConnectionException: ... The PID 'foo:...' already exists in the registry; the object can't be re-created.
 
-It's also possible to fetch an existing object with the client:
+Fetching Objects
+~~~~~~~~~~~~~~~~
+
+Off course it's also possible to retrieve an existing object with the client:
 
   >>> obj = client.getObject(pid)
   >>> print obj.label
   My First Test Object  
+
+You'll get an error if the object does not exist:
+
+  >>> obj = client.getObject(u'foo:bar')
+  Traceback (most recent call last):
+  ...
+  FedoraConnectionException: ...no path in db registry for [foo:bar]
+
 
 Deleting Objects
 ~~~~~~~~~~~~~~~~
@@ -116,14 +141,14 @@ or by passing the pid to the deleteObject method on the client.
 
   >>> pid = client.getNextPID(u'foo')
   >>> o = client.createObject(pid, label=u'About to be deleted')
-  >>> o.delete()
+  >>> o.delete(logMessage=u'Bye Bye')
   >>> o = client.getObject(pid)
   Traceback (most recent call last):
   ...
   FedoraConnectionException: ...no path in db registry for [foo:...]
 
 Note that in most cases you don't want to delete an object. It's better to
-set the state of the object to 'deleted'. More about this in the next section.
+set the state of the object to `deleted`. More about this in the next section.
 
 Object Properties
 ~~~~~~~~~~~~~~~~~
@@ -190,6 +215,8 @@ the object to find the datastream ids or call the datastreams method:
 To actually get a datastream we can access it as if it's a dictionary:
  
   >>> ds = obj['DC']
+  >>> ds
+  <fcrepo.datastream.DCDatastream object at ...>
   >>> obj['FOO']
   Traceback (most recent call last):
   ...
@@ -207,8 +234,12 @@ like the Fedora object:
   >>> print ds.state
   A
 
-There are different types of datastreams, this one is of type 'X', which means
-the content is stored inline in the FOXML file as XML.
+There are different types of datastreams, this one is of type `X`, which means
+the content is stored inline in the `FOXML file`_ . FOXML is the internal 
+storage format of Fedora.
+
+.. _FOXML file: http://fedora-commons.org/confluence/display/FCR30/Introduction+to+FOXML
+
 
   >>> print ds.controlGroup
   X
@@ -233,6 +264,11 @@ Let's change the label, and see what happens:
   >>> ds.label = u'Datastream DC Metadata'
   >>> ds.location
   u'foo:...+DC+DC.2'
+
+The location ID changes with every version, and old versions of the datastream
+are still available. The fcrepo client code contains no methods to retrieve
+old versions of datastreams or view the audit trail of objects. 
+The methods that implement this are available in the WADL API though.
 
 Fedora can create checksums of the content stored in a datastream, 
 by default checksums are disabled, if we set the checksumType property
@@ -269,16 +305,14 @@ We can also get and set the content of the datastream:
 
   >>> xml = xml.replace('My First Test Object', 'My First Modified Datastream')
   >>> ds.setContent(xml)
-  >>> ds.location
-  u'foo:...+DC+DC.3'
 
 Special Datastream: DC
 ~~~~~~~~~~~~~~~~~~~~~~
 
-This DC datastream that is always available is actually a special kind of 
+This `DC` datastream that is always available is actually a special kind of 
 datastream. The Dublin Core properties from this XML stream are stored in a
 relational database which can be searched. The values are also used in the
-OAIPMH feed. Fedora uses the legacy /elements/1.1/ namespace which contains
+OAIPMH feed. Fedora uses the legacy `/elements/1.1/` namespace which contains
 the following terms:
 
  * contributor
@@ -353,7 +387,7 @@ Managed Content Datastreams
 
 We can also add Managed Content, this will be stored and managed by fedora,
 but it's not inline xml. The data is stored in a seperate file on 
-the harddrive. We do this by setting the controlGroup param to 'M'
+the harddrive. We do this by setting the controlGroup param to `M`
 
   >>> obj.addDataStream('TEXT', 'Hello!  ', label=u'Some Text',
   ...                   mimeType=u'text/plain', controlGroup=u'M', 
@@ -366,11 +400,11 @@ the harddrive. We do this by setting the controlGroup param to 'M'
   >>> print ds.getContent().read()
   Hello!
 
-Externally References Datastreams
+Externally Referenced Datastreams
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For large files it might not be convenient to store them inside Fedora. 
 In this case the file can be hosted externally, and we store a datastream
-of controlGroup type 'E' (Externally referenced)
+of controlGroup type `E` (Externally referenced)
 
   >>> obj.addDataStream('URL', controlGroup=u'E',
   ...                   location=u'http://pypi.python.org/fcrepo')
@@ -392,7 +426,7 @@ We can get the location though:
   u'http://pypi.python.org/fcrepo'
 
 The last of the datastream types is an externally referenced stream that 
-redirects. This datastream has controlGroup 'R' (Redirect Referenced)
+redirects. This datastream has controlGroup `R` (Redirect Referenced)
 
   >>> obj.addDataStream('HOMEPAGE', controlGroup=u'R',
   ...                   location=u'http://pypi.python.org/fcrepo')
@@ -420,10 +454,10 @@ or by calling the delete method on a datastream.
 Another Special Datastream: RELS-EXT
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Besides the special 'DC' datastream, there is another special datastream 
-called 'RELS-EXT'.
-This datastream should contain 'flat' RDFXML data which will be indexed in a
-triplestore. The RELS-EXT datastream has some additional methods to assist in 
+Besides the special `DC` datastream, there is another special datastream 
+called `RELS-EXT`.
+This datastream should contain `flat` RDFXML data which will be indexed in a
+triplestore. The `RELS-EXT` datastream has some additional methods to assist in 
 working with the RDF data.
 
 To create the RELS-EXT stream we don't need to supply an RDFXML file, it will
@@ -434,9 +468,9 @@ create an empty one if no data is send.
 
 Now we can add some RDF data. Each predicate contains a list of values, each
 value is a dictionary with a value and type key, and optionally a lang and
-datatype key. This is identical to the `RDFJSON format`_.
+datatype key. This is identical to the `RDF+JSON format`_.
 
-.. _RDFJSON format: http://n2.talis.com/wiki/RDF_JSON_Specification
+.. _RDF+JSON format: http://n2.talis.com/wiki/RDF_JSON_Specification
 
   >>> from fcrepo.utils import NS
   >>> ds[NS.rdfs.comment].append(
@@ -459,9 +493,9 @@ This will serialise the RDF statements to RDFXML and perform the save action:
     </rdf:Description>
   </rdf:RDF>
 
-We are not allowed to add statements using the DC namespace.
+We are not allowed to add statements using the `DC` namespace.
 This will result in an error. I suppose this is because it should be set 
-through the DC datastream.
+through the `DC` datastream.
 
   >>> ds[NS.dc.title].append({'value': u'A title', 'type': 'literal'})
   >>> ds.setContent()
@@ -490,14 +524,14 @@ objects into collections that are used in the OAIPMH feed.
   ['http://www.w3.org/2000/01/rdf-schema#comment', 'info:fedora/fedora-system:def/relations-external#isMemberOfCollection']
 
 Notice that the Fedora PID needs to be converted to an URI before it can be
-referenced in RDF, this is done by prepending 'info:fedora/' to the PID.
+referenced in RDF, this is done by prepending `info:fedora/` to the PID.
 
 Service Definitions and Object Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Besides datastreams, a Fedora object can have methods registered to it through
-service definitions. We don't provide access to the service definitions and
-assume that all the methods have unique names
+service definitions. We don't provide direct access to the service definitions
+but assume that all the methods have unique names.
 
   >>> obj.methods()
   ['viewObjectProfile', 'viewMethodIndex', 'viewItemIndex', 'viewDublinCore']
@@ -513,7 +547,7 @@ Searching Objects
 ~~~~~~~~~~~~~~~~~
 
 Fedora comes with simple search functionality based on data from 
-the DC datastream and the Fedora object properties.
+the `DC` datastream and the Fedora object properties.
 The following properties can be used to search on:
 
  * cDate  
@@ -557,9 +591,9 @@ Examples:
   mDate>2002-10-2 mDate<2002-10-2T12:00:00
     Matches objects modified sometime before noon (UTC) on October 2nd, 2002
 
-So let's create 5 objects which we can use to search on
+So let's create 5 objects which we can use to search on:
 
-   >>> pids = pids = client.getNextPID(u'search', numPIDs=5)
+   >>> pids = pids = client.getNextPID(u'searchtest', numPIDs=5)
    >>> for pid in pids: client.createObject(pid, label=u'Search Test Object')
    <fcrepo.object.FedoraObject object at ...>
    <fcrepo.object.FedoraObject object at ...>
@@ -570,23 +604,28 @@ So let's create 5 objects which we can use to search on
 Now we'll search for these objects with a pid search, we also want the label
 returned from the search.
 
-   >>> client.searchObjects(u'pid~search:*', ['pid', 'label'])
+   >>> client.searchObjects(u'pid~searchtest:*', ['pid', 'label'])
    <generator object searchObjects at ...>
 
 The search returns a generator, by default it queries the server for the
 first 10 objects, but if you iterate through the resultset and come to the end
 the next batch will automatically be added. 
+
 To illustrate this we will query with a batch size of 2:
 
-   >>> results = client.searchObjects(u'pid~search:*', ['pid', 'label'],
+   >>> results = client.searchObjects(u'pid~searchtest:*', ['pid', 'label'],
    ...                                maxResults=2)
    >>> result_list = [r for r in results]
    >>> len(result_list) >= 5
    True
    >>> result_list[0]['pid']
-   u'search:...'
+   u'searchtest:...'
    >>> result_list[0]['label']
    u'Search Test Object'
+
+As shown we actually get more results then the max of 2, but the client asks
+Fedora for results in batches of 2 while we iterate through the results 
+generator.
 
 RDF Index Search
 ~~~~~~~~~~~~~~~~
@@ -613,4 +652,12 @@ RELS-EXT datastream example
 Other output formats and query languages can be specified as parameters, by
 default only SPARQL is supported.
 
+The searchTriples method also has a `flush` argument. 
+If you change a RELS-EXT datastream in Fedora, the triplestore is actually not
+updated! You have to set this flush param when you're searching to `true` to
+make sure the triplestore is updated. By default Fedora sets the flush 
+parameter to `false` which is understandable for performance reasons but 
+can be very confusing.
+This library sets the param to `true` by default, which is not always very 
+efficient, but you are sure the triplestore is up to date.
 

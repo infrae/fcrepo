@@ -229,10 +229,11 @@ class FedoraClient(object):
 
                 
     def searchTriples(self, query, lang='sparql', format='Sparql',
-                      limit=100, type='tuples', dt='on'):
+                      limit=100, type='tuples', dt='on', flush=True):
+        flush = str(flush).lower()
         url = u'/risearch?%s' % urllib.urlencode({'query':query,
                                                   'lang':lang,
-                                                  'flush': 'true',
+                                                  'flush': flush,
                                                   'format':format,
                                                   'limit':limit,
                                                   'type':type,
