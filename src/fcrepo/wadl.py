@@ -5,8 +5,6 @@ import urllib
 
 from lxml import etree
 
-from fcrepo.connection import Connection
-
 NSMAP = {'wadl': 'http://research.sun.com/wadl/2006/10'}
 
 class WADLMethod(object):
@@ -76,7 +74,6 @@ class WADLRequest(object):
         if qs:
             self.url = '%s?%s' % (self.url, urllib.urlencode(qs))
 
-        self.headers['Content-Length'] = str(len(body))
         return self.method.api.connection.open(self.url,
                                                body,
                                                self.headers,

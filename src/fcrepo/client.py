@@ -96,9 +96,23 @@ class FedoraClient(object):
             params['mimeType'] = u'application/rdf+xml'
             params['formatURI'] = (
                 u'info:fedora/fedora-system:FedoraRELSExt-1.0')
+
         if params.get('controlGroup', u'X') == u'X':
             if not 'mimeType' in params:
                 params['mimeType'] = u'text/xml'
+        if not 'mimeType' in params:
+            params['mimeType'] = u'application/binary'
+            
+        if 'checksumType' not in params:
+            params['checksumType'] = u'MD5'
+
+        params = self._fix_ds_params(params)
+
+        request = self.api.addDatastream(pid=pid, dsID=dsid)
+        request.headers['Content-Type'] = params['mimeType']
+        response = request.submit(body, **params)        
+
+    def _fix_ds_params(self, params):
         for name, param in params.items():
             newname = {'label': 'dsLabel',
                        'location': 'dsLocation',
@@ -107,15 +121,7 @@ class FedoraClient(object):
                 params[newname] = param
                 del params[name]
                 
-        if not 'mimeType' in params:
-            params['mimeType'] = u'application/binary'
-            
-        if 'checksumType' not in params:
-            params['checksumType'] = u'MD5'
-
-        request = self.api.addDatastream(pid=pid, dsID=dsid)
-        request.headers['Content-Type'] = params['mimeType']
-        response = request.submit(body, **params)        
+        return params
         
     def getDatastreamProfile(self, pid, dsid):
         request = self.api.getDatastreamProfile(pid=pid, dsID=dsid)
@@ -148,9 +154,10 @@ class FedoraClient(object):
             result[name] = value
         return result
 
-    def modifyDatastream(self, pid, dsid, body='', **kwargs):
+    def modifyDatastream(self, pid, dsid, body='', **params):
+        params = self._fix_ds_params(params)
         request = self.api.modifyDatastream(pid=pid, dsID=dsid)
-        response = request.submit(body, **kwargs)
+        response = request.submit(body, **params)
         
     def getDatastream(self, pid, dsid):
         request = self.api.getDatastream(pid=pid, dsID=dsid)

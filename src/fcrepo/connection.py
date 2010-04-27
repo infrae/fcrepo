@@ -1,6 +1,6 @@
 # Copyright (c) 2010 Infrae / Technical University Delft. All rights reserved.
 # See also LICENSE.txt
-
+import StringIO
 import socket
 import httplib
 import urlparse
@@ -72,6 +72,7 @@ class Connection(object):
             url = url[1:]
         url = '%s/%s' % (self.path, url)
         attempts = 3
+
         while attempts:
             try:
                 logging.debug('Trying %s on %s' % (method, url))
