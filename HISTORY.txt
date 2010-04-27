@@ -8,5 +8,3 @@ Changes
 ~~~~~~~
   - Initial Code release with working API-A, API-M
     search and index search.
-
-
