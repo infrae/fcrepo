@@ -539,7 +539,9 @@ The following properties can be used to search on:
  * rights
 
 Fedora has a query syntax where you can enter one or more conditions, separated by space.  Objects matching all conditions will be returned.
-A condition is a field (choose from the field names on the left) followed by an operator, followed by a value.
+
+A condition is a field (choose from the field names above) followed by an operator, followed by a value.
+
 The = operator will match if the field's entire value matches the value given.
 The ~ operator will match on phrases within fields, and accepts the ? and * wildcards.
 The <, >, <=, and >= operators can be used with numeric values, such as dates.
@@ -573,8 +575,8 @@ returned from the search.
 
 The search returns a generator, by default it queries the server for the
 first 10 objects, but if you iterate through the resultset and come to the end
-the next batch will automatically be added. To illustrate we will query with
-a batch size of 2
+the next batch will automatically be added. 
+To illustrate this we will query with a batch size of 2:
 
    >>> results = client.searchObjects(u'pid~search:*', ['pid', 'label'],
    ...                                maxResults=2)
