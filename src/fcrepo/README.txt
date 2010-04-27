@@ -389,7 +389,7 @@ We can also add Managed Content, this will be stored and managed by fedora,
 but it's not inline xml. The data is stored in a seperate file on 
 the harddrive. We do this by setting the controlGroup param to `M`
 
-  >>> obj.addDataStream('TEXT', 'Hello!  ', label=u'Some Text',
+  >>> obj.addDataStream('TEXT', 'Hello!', label=u'Some Text',
   ...                   mimeType=u'text/plain', controlGroup=u'M', 
   ...                   logMessage=u'Added some managed text')
   >>> obj.datastreams()
@@ -397,8 +397,8 @@ the harddrive. We do this by setting the controlGroup param to `M`
   >>> ds = obj['TEXT']
   >>> ds.size
   0
-  >>> print ds.getContent().read()
-  Hello!
+  >>> ds.getContent().read()
+  'Hello!'
 
 Externally Referenced Datastreams
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

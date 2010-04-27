@@ -57,9 +57,10 @@ class Connection(object):
         if not self.persistent:
             self.form_headers['Connection'] = 'close'
         
-        if self.username and self.password:                
-            authz = ('%s:%s' % (self.username, self.password)).strip().encode('base64')
-            self.form_headers['Authorization'] = 'Basic %s' % authz
+        if self.username and self.password:
+            token = ('%s:%s' % (self.username,
+                                self.password)).encode('base64').strip()
+            self.form_headers['Authorization'] = 'Basic %s' % token
         
     def close(self):
         self.conn.close()

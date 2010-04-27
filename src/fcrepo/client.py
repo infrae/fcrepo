@@ -44,10 +44,6 @@ class FedoraClient(object):
             VERSION='1.1', PID=pid)
         body = etree.tostring(doc, encoding="UTF-8", xml_declaration=False)
         
-        # add some newlines otherwise fedora xml parser will barf, also note
-        # that xml_declarations are also not allowed (wtf?)
-        body += '\r\n'
-        
         request = self.api.createObject(pid=pid)
         request.headers['Content-Type'] = 'text/xml; charset=utf-8'
         response = request.submit(body, state=state[0], label=label)
@@ -103,7 +99,6 @@ class FedoraClient(object):
         if params.get('controlGroup', u'X') == u'X':
             if not 'mimeType' in params:
                 params['mimeType'] = u'text/xml'
-            body += '\r\n'
         for name, param in params.items():
             newname = {'label': 'dsLabel',
                        'location': 'dsLocation',
