@@ -448,8 +448,8 @@ datatype key. This is identical to the `RDFJSON format`_.
   >>> for predicate in ds: print predicate
   http://www.w3.org/2000/01/rdf-schema#comment
 
-To save this we call setContent without any data. This will serialise the
-RDF statements to RDFXML and perform the save action
+To save this we call the setContent method without any data. 
+This will serialise the RDF statements to RDFXML and perform the save action:
    
   >>> ds.setContent()
   >>> print ds.getContent().read()
@@ -459,9 +459,9 @@ RDF statements to RDFXML and perform the save action
     </rdf:Description>
   </rdf:RDF>
 
-Note that we are not allowed to add statements using the DC namespace.
-This will result in an error. I suppose this is because we should set it
-in the DC datastream.
+We are not allowed to add statements using the DC namespace.
+This will result in an error. I suppose this is because it should be set 
+through the DC datastream.
 
   >>> ds[NS.dc.title].append({'value': u'A title', 'type': 'literal'})
   >>> ds.setContent()
@@ -469,7 +469,9 @@ in the DC datastream.
   ...
   FedoraConnectionException: ... The RELS-EXT datastream has improper relationship assertion: dc:title.
 
-We can also use RDF to create relations between objects.
+We can also use RDF to create relations between objects. For example we can add
+a relation using the Fedora isMemberOfCollection which can be used to group
+objects into collections that are used in OAIPMH
 
   >>> colpid = client.getNextPID(u'foo')
   >>> collection = client.createObject(colpid, label=u'A test Collection')
