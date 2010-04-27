@@ -486,11 +486,11 @@ objects into collections that are used in the OAIPMH feed.
     </rdf:Description>
   </rdf:RDF>
 
-Notice that the Fedora PID needs to be converted to an URI before it can be
-referenced in RDF, this is done by prepending 'info:fedora/' to the PID.
-
   >>> print ds.predicates()
   ['http://www.w3.org/2000/01/rdf-schema#comment', 'info:fedora/fedora-system:def/relations-external#isMemberOfCollection']
+
+Notice that the Fedora PID needs to be converted to an URI before it can be
+referenced in RDF, this is done by prepending 'info:fedora/' to the PID.
 
 Service Definitions and Object Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
