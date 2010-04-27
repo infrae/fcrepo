@@ -471,7 +471,7 @@ through the DC datastream.
 
 We can also use RDF to create relations between objects. For example we can add
 a relation using the Fedora isMemberOfCollection which can be used to group
-objects into collections that are used in OAIPMH
+objects into collections that are used in the OAIPMH feed.
 
   >>> colpid = client.getNextPID(u'foo')
   >>> collection = client.createObject(colpid, label=u'A test Collection')
