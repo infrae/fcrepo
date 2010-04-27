@@ -59,7 +59,6 @@ class FedoraObject(object):
         self._dsids=None
 
     def methods(self):
-        result = []
         if self._methods is None:
             self._methods = self.client.getAllObjectMethods(self.pid)
         return [m[1] for m in self._methods]
