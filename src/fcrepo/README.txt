@@ -512,7 +512,8 @@ assume that all the methods have unique names
 Searching Objects
 ~~~~~~~~~~~~~~~~~
 
-Fedora comes with simple search functionality based on the DC datastream.
+Fedora comes with simple search functionality based on data from 
+the DC datastream and the Fedora object properties.
 The following properties can be used to search on:
 
  * cDate  
