@@ -1,3 +1,6 @@
+# Copyright (c) 2010 Infrae / Technical University Delft. All rights reserved.
+# See also LICENSE.txt
+
 import sys
 import os
 import commands

@@ -1,3 +1,6 @@
+# Copyright (c) 2010 Infrae / Technical University Delft. All rights reserved.
+# See also LICENSE.txt
+
 from fcrepo.datastream import FedoraDatastream, RELSEXTDatastream, DCDatastream
 
 class FedoraObject(object):

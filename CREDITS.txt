@@ -1,0 +1,30 @@
+Credits
+=======
+
+The fcrepo package has is developed by Infrae (http://www.infrae.com).
+
+Developers
+----------
+
+Jasper Op de Coul <jasper@infrae.com>
+Govert Buijs <govert@infrae.com>
+(this could be you!)
+
+Thanks to
+---------
+
+Thanks to the `Technical University Delft`_ library team for funding this
+project and Etienne Posthumus for the `duraspace connection code`_
+and his vision.
+
+Administration for their support in building the XSLT feature.
+
+The people at ETH in Zurich for their feedback and support and
+examples.
+
+Many thanks go to Hans Verster <verster@daz.eur.nl> at the Erasmus
+University Rotterdam for his vision and support.
+
+.. _Technial University Delft: http://tudelft.nl/
+.. _duraspace connection code: http://bitbucket.org/epoz/duraspace/
+

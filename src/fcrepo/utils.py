@@ -1,3 +1,7 @@
+# Copyright (c) 2010 Infrae / Technical University Delft. All rights reserved.
+# See also LICENSE.txt
+
+
 from collections import defaultdict
 
 from lxml import etree

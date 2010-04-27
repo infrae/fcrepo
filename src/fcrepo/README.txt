@@ -1,6 +1,6 @@
 
-Fedora Commons Repository API
-=============================
+FCRepo, a client for the Fedora Commons Repository
+==================================================
 
 Info
 ----
