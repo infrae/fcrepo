@@ -1,7 +1,7 @@
 FCRepo Changes
 ==============
 
-fcrepo 1.0b1 (unreleased)
+fcrepo 1.0b1 (2010-05-03)
 -------------------------
 
 Changes
