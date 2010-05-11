@@ -3,7 +3,8 @@
 
 import sys
 import os
-import commands
+import subprocess
+import tempfile
 
 FEDORA_INSTALL_PROPERTIES="""
 ri.enabled=true
@@ -41,28 +42,39 @@ def install_fedora():
         print >> sys.stderr, ('fcrepo-installer-3.3.jar is missing, '
                               'run buildout first')
         sys.exit(1)
-
-    java_version = (
-        commands.getoutput('java -version').splitlines() or [''])[0]
+    if sys.platform.startswith('win'):
+        output = subprocess.Popen(['java','-version'], 
+                              stderr=subprocess.PIPE,
+                              stdout=subprocess.PIPE
+                              ).communicate()[1]
+    else:
+        output = subprocess.Popen(['java', '-version'], stdout=subprocess.PIPE
+                                  ).communicate()[0]
     
+    java_version = (output.splitlines() or [''])[0]
     if not java_version.startswith('java version "1.6'):
         print >> sys.stderr, ('can not find java, or wrong version')
         sys.exit(1)
     
-    fedora_path = os.path.join(os.getcwd(), 'parts', 'fedora')
+    fedora_path = os.path.join(os.getcwd(), 'parts', 'fedora').replace('\\','/')
     install_props = FEDORA_INSTALL_PROPERTIES % {'host': FEDORA_HOST,
                                                  'port': FEDORA_PORT,
                                                  'passwd': FEDORA_PASSWD,
                                                  'path': fedora_path}
-    fp = open('/tmp/fedora_install.properties', 'w')
+    fp = tempfile.NamedTemporaryFile(delete=False)
     fp.write(install_props)
     fp.close()
-
-    os.system('java -jar "%s" /tmp/fedora_install.properties' % jarfile)
+    os.system('java -jar "%s" "%s"' % (jarfile, fp.name))
+    os.remove(fp.name)
 
 def start_fedora():
     fedora_path = os.path.join(os.getcwd(), 'parts', 'fedora')
-    cmd = ('export FEDORA_HOME="%s" && export CATALINA_HOME="%s/tomcat" && '
+    if sys.platform.startswith('win'):
+        os.environ['FEDORA_HOME'] = fedora_path
+        os.environ['CATALINA_HOME'] = os.path.join(fedora_path,'tomcat')
+        cmd = 'cmd /C "%CATALINA_HOME%\\bin\\catalina.bat" run'
+    else:
+        cmd = ('export FEDORA_HOME="%s" && export CATALINA_HOME="%s/tomcat" && '
            'sh "%s/tomcat/bin/catalina.sh" run' % (fedora_path,
                                                    fedora_path,
                                                    fedora_path))

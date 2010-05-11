@@ -1,6 +1,13 @@
 FCRepo Changes
 ==============
 
+fcrepo 1.0b2 (unreleased)
+-------------------------
+
+Changes
+~~~~~~~
+   - Fixed Windows Fedora install through patch from Owen Nelson
+
 fcrepo 1.0b1 (2010-05-03)
 -------------------------
 

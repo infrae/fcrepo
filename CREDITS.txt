@@ -8,6 +8,7 @@ Developers
 
 Jasper Op de Coul <jasper@infrae.com>
 Govert Buijs <govert@infrae.com>
+Owen Nelson <onelson@gmail.com>
 (this could be you!)
 
 Thanks to
