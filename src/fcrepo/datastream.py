@@ -12,14 +12,16 @@ class typedproperty(property):
         # like a normal property, but converts types to/from strings
         def typed_get(self):
             if pytype is bool:
+                value = fget(self)
+                if isinstance(value, bool):
+                    return value
                 return fget(self) == 'true'
             return pytype(fget(self))
         
         def typed_set(self, value):
-            if pytype is bool:
-                return fset(self, unicode(value).lower())
-            else:
-                return fset(self, unicode(value).lower())
+            # we don't change the type here, this is done in wadl client
+            # otherwise the wadl client can't determine the correct type
+            return fset(self, value)
             
         super(typedproperty, self).__init__(typed_get, typed_set, fdel, doc)
 
