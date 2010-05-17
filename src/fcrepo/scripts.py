@@ -42,16 +42,13 @@ def install_fedora():
         print >> sys.stderr, ('fcrepo-installer-3.3.jar is missing, '
                               'run buildout first')
         sys.exit(1)
-    if sys.platform.startswith('win'):
-        output = subprocess.Popen(['java','-version'], 
-                              stderr=subprocess.PIPE,
-                              stdout=subprocess.PIPE
-                              ).communicate()[1]
-    else:
-        output = subprocess.Popen(['java', '-version'], stdout=subprocess.PIPE
-                                  ).communicate()[0]
-    
+    output = subprocess.Popen(['java','-version'], 
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT
+                              ).communicate()[0]
+
     java_version = (output.splitlines() or [''])[0]
+
     if not java_version.startswith('java version "1.6'):
         print >> sys.stderr, ('can not find java, or wrong version')
         sys.exit(1)
