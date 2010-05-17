@@ -405,12 +405,12 @@ the whole file in memory you can also supply a file stream. Let's make a 3MB
 file:
 
   >>> import tempfile, os
-  >>> fd, filename = tempfile.mkstemp()
-  >>> fp = open(filename, 'w')
+  >>> fp = tempfile.NamedTemporaryFile(mode='w+b', delete=False)
+  >>> filename = fp.name
   >>> fp.write('foo' * (1024**2))
   >>> fp.close()
   >>> os.path.getsize(filename)
-  3145728
+  3145728...
 
 Now we'll open the file and stream it to Fedora. We then read the whole thing
 in memory and see if it's the same size:
@@ -420,7 +420,7 @@ in memory and see if it's the same size:
   >>> fp.close()
   >>> content = ds.getContent().read()
   >>> len(content)
-  3145728
+  3145728...
   >>> os.remove(filename)  
 
 Externally Referenced Datastreams
