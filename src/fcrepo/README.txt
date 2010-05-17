@@ -617,7 +617,7 @@ Examples:
 
 So let's create 5 objects which we can use to search on:
 
-   >>> pids = pids = client.getNextPID(u'searchtest', numPIDs=5)
+   >>> pids = client.getNextPID(u'searchtest', numPIDs=5)
    >>> for pid in pids: client.createObject(pid, label=u'Search Test Object')
    <fcrepo.object.FedoraObject object at ...>
    <fcrepo.object.FedoraObject object at ...>
