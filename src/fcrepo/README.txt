@@ -24,14 +24,11 @@ This package can be installed using buildout which will also fetch the
 Fedora installer, and install it locally for testing purposes. 
 Use the following steps to install and run this doctest::
 
-   python bootstrap.py
+   python2.6 bootstrap.py
    ./bin/buildout
    ./bin/install_fedora
    ./bin/start_fedora
    ./bin/test
-
-This software has been developed using python2.6 on a linux system. Other
-platforms have not been tested at the moment.
 
 .. _Fedora Commons Repository: http://www.fedora-commons.org/
 .. _Kahn and Wilensky: http://www.cnri.reston.va.us/k-w.html
