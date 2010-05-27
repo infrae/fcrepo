@@ -1,6 +1,14 @@
 FCRepo Changes
 ==============
 
+fcrepo 1.0 (unreleased)
+-----------------------
+
+Changes
+~~~~~~~
+   - Fixed bug triggered when retrieving DC datastream values that
+     contain no text
+
 fcrepo 1.0b2 (2010-05-17)
 -------------------------
 

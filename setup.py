@@ -6,7 +6,7 @@ README = join(dirname(__file__), 'src', 'fcrepo', 'README.txt')
 
 setup(
     name='fcrepo',
-    version='1.0b2',
+    version='1.0 (unreleased)',
     author='Infrae / Jasper Op de Coul',
     author_email='jasper@infrae.com',
     description="API implementation for the Fedora Commons Repository platform",

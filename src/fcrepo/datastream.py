@@ -158,6 +158,8 @@ class DCDatastream(FedoraDatastream):
             for child in doc:
                 name = child.tag.split('}')[-1]
                 value = child.text
+                if value is None:
+                    continue
                 if not isinstance(value, unicode):
                     value = value.decode('utf8')
                 self._dc[name].append(value)
