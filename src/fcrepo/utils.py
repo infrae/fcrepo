@@ -13,6 +13,7 @@ NAMESPACES = {'rdf': u'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
               'owl': u'http://www.w3.org/2002/07/owl#',
               'xsd': u'http://www.w3.org/2001/XMLSchema#',
               'fedora': u"info:fedora/fedora-system:def/relations-external#",
+              'fedora_model': u"info:fedora/fedora-system:def/model#",
               'dc': u"http://purl.org/dc/elements/1.1/",
               'oai_dc': u"http://www.openarchives.org/OAI/2.0/oai_dc/",
               'dcterms': u'http://purl.org/dc/terms/'}
