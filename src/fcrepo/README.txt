@@ -392,8 +392,8 @@ the harddrive. We do this by setting the controlGroup param to `M`
   >>> obj.datastreams()
   ['DC', 'FOOXML', 'TEXT']
   >>> ds = obj['TEXT']
-  >>> ds.size
-  0
+  >>> ds.size == 0 or ds.size == 6 # this does not work in Fedora 3.3
+  True
   >>> ds.getContent().read()
   'Hello!'
 

@@ -62,11 +62,13 @@ class FedoraClient(object):
         result = {'ownerId': u''}
         for child in doc:
             # rename elementnames to match property names in foxml
+            # the xml data is namespaced in 3.4, but not in 3.3, so strip out
+            # the namespace, to be compatible with both
             name = {'objLabel': 'label',
                     'objOwnerId': 'ownerId',
                     'objCreateDate': 'createdDate',
                     'objLastModDate': 'lastModifiedDate',
-                    'objState': 'state'}.get(child.tag)
+                    'objState': 'state'}.get(child.tag.split('}')[-1])
             if name is None or child.text is None:
                 continue
             value = child.text
@@ -89,7 +91,7 @@ class FedoraClient(object):
         xml = response.read()
         response.close()
         doc = etree.fromstring(xml)
-        return doc.xpath('/objectDatastreams/datastream/@dsid')
+        return [child.attrib['dsid'] for child in doc]
 
     def addDatastream(self, pid, dsid, body='', **params):
         if dsid == 'RELS-EXT' and not body:
@@ -133,6 +135,8 @@ class FedoraClient(object):
         result = {}
         for child in doc:
             # rename elementnames to match property names in foxml
+            # the xml data is namespaced in 3.4, but not in 3.3, so strip out
+            # the namespace, to be compatible with both
             name = {'dsLabel': 'label',
                     'dsVerionId': 'versionId',
                     'dsCreateDate': 'createdDate',
@@ -146,7 +150,7 @@ class FedoraClient(object):
                     'dsLocation': 'location',
                     'dsLocationType': 'locationType',
                     'dsChecksum': 'checksum',
-                    'dsChecksumType': 'checksumType'}.get(child.tag)
+                    'dsChecksumType': 'checksumType'}.get(child.tag.split('}')[-1])
             if name is None or child.text is None:
                 continue
             value = child.text
