@@ -35,8 +35,12 @@ FEDORA_PORT = '8080'
 FEDORA_PASSWD = 'fedoraAdmin'
 
 def install_fedora():
-    jarfile = os.path.join(os.getcwd(), 'parts', 'java-dependencies',
+    jarfile = os.path.join(os.getcwd(), 'parts', 'fc3.3',
                            'fcrepo-installer-3.3.jar')
+
+    if not os.path.isfile(jarfile):
+        jarfile = os.path.join(os.getcwd(), 'parts', 'fc3.4-RC1', 
+                               'fcrepo-installer-3.4-RC1.jar')
 
     if not os.path.isfile(jarfile):
         print >> sys.stderr, ('fcrepo-installer-3.3.jar is missing, '
