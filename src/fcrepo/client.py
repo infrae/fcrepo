@@ -2,6 +2,7 @@
 # See also LICENSE.txt
 
 import urllib
+from collections import defaultdict
 
 from lxml import etree
 from lxml.builder import ElementMaker
@@ -223,13 +224,14 @@ class FedoraClient(object):
                 token = False
             
             for result in doc.xpath('//f:objectFields', namespaces={'f': NS}):
-                data = {}
+                data = defaultdict(list)
+
                 for child in result:
                     field_name = child.tag.split('}')[-1].decode('utf8')
                     value = child.text
                     if not isinstance(value, unicode):
                         value = value.decode('utf8')
-                        data[field_name] = value
+                    data[field_name].append(value)
                 yield data
 
                 

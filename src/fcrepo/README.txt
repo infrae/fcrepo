@@ -640,9 +640,9 @@ To illustrate this we will query with a batch size of 2:
    >>> len(result_list) >= 5
    True
    >>> result_list[0]['pid']
-   u'searchtest:...'
+   [u'searchtest:...']
    >>> result_list[0]['label']
-   u'Search Test Object'
+   [u'Search Test Object']
 
 As shown we actually get more results then the max of 2, but the client asks
 Fedora for results in batches of 2 while we iterate through the results 
