@@ -288,8 +288,8 @@ Have a look at the `REST API Documentation`_ for a full list
   u'http://www.openarchives.org/OAI/2.0/oai_dc/'
 
 
-Getting and Setting Content
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Getting and Setting Content - 1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We can also get and set the content of the datastream:
 
@@ -302,6 +302,20 @@ We can also get and set the content of the datastream:
 
   >>> xml = xml.replace('My First Test Object', 'My First Modified Datastream')
   >>> ds.setContent(xml)
+
+
+Getting and Setting Content - 2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can also get and set the content directly, 
+as if it is a dictionarie of dictionaries
+
+  >>> print obj['DC']['title']
+  [u'My First Modified Datastream']
+  >>> obj['DC']['title'] = [u'My Second Modified Datastream']
+  >>> print obj['DC']['title']
+  [u'My Second Modified Datastream']
+
 
 Special Datastream: DC
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -338,7 +352,7 @@ the DC datastream allows access to the DC properties as if the datastream
 is a dictionary:
 
   >>> ds['title']
-  [u'My First Modified Datastream']
+  [u'My Second Modified Datastream']
 
 This can also be used to set values:
 
@@ -560,7 +574,7 @@ but assume that all the methods have unique names.
   >>> print obj.call('viewDublinCore').read()
   <html ...>
   ...
-  <td ...>My First Modified Datastream</td>
+  <td ...>My Second Modified Datastream</td>
   ...
   </html>
 

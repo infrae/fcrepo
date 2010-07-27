@@ -10,6 +10,7 @@ class FedoraObject(object):
         self._info = self.client.getObjectProfile(self.pid)
         self._dsids = None # load lazy
         self._methods = None
+        self._ds_cache = {}
         
     def _setProperty(self, name, value):
         msg = u'Changed %s object property' % name
@@ -40,12 +41,17 @@ class FedoraObject(object):
         return dsid in self.datastreams()
 
     def __getitem__(self, dsid):
-        if dsid == 'DC':
-            return DCDatastream(dsid, self)
+        ds = self._ds_cache.get(dsid)
+        if not ds is None:
+            return ds
+        elif dsid == 'DC':
+            ds = DCDatastream(dsid, self)
         elif dsid == 'RELS-EXT':
-            return RELSEXTDatastream(dsid, self)
+            ds = RELSEXTDatastream(dsid, self)
         else:
-            return FedoraDatastream(dsid, self)
+            ds = FedoraDatastream(dsid, self)
+        self._ds_cache[dsid] = ds
+        return ds
 
     def __delitem__(self, dsid):
         self.client.deleteDatastream(self.pid, dsid)
