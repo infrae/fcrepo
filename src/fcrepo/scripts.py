@@ -39,11 +39,12 @@ def install_fedora():
                            'fcrepo-installer-3.3.jar')
 
     if not os.path.isfile(jarfile):
-        jarfile = os.path.join(os.getcwd(), 'parts', 'fc3.4-RC1', 
-                               'fcrepo-installer-3.4-RC1.jar')
+        jarfile = os.path.join(os.getcwd(), 'parts', 'fc3.4', 
+                               'fcrepo-installer-3.4.jar')
 
     if not os.path.isfile(jarfile):
-        print >> sys.stderr, ('fcrepo-installer-3.3.jar is missing, '
+        print >> sys.stderr, ('fcrepo-installer-3.3.jar or '
+                              'fcrepo-installer-3.4.jar is missing, '
                               'run buildout first')
         sys.exit(1)
     output = subprocess.Popen(['java','-version'], 
@@ -75,8 +76,8 @@ def start_fedora():
         os.environ['CATALINA_HOME'] = os.path.join(fedora_path,'tomcat')
         cmd = 'cmd /C "%CATALINA_HOME%\\bin\\catalina.bat" run'
     else:
-        cmd = ('export FEDORA_HOME="%s" && export CATALINA_HOME="%s/tomcat" && '
-           'sh "%s/tomcat/bin/catalina.sh" run' % (fedora_path,
-                                                   fedora_path,
-                                                   fedora_path))
+        cmd = ('export FEDORA_HOME="%(path)s" && '
+               'export CATALINA_HOME="%(path)s/tomcat" && '
+               'sh "%(path)s/tomcat/bin/catalina.sh" run' % 
+               {'path': fedora_path})
     os.system(cmd)
