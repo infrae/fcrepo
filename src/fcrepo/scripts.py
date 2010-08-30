@@ -5,6 +5,8 @@ import sys
 import os
 import subprocess
 import tempfile
+from ConfigParser import ConfigParser
+
 
 FEDORA_INSTALL_PROPERTIES="""
 ri.enabled=true
@@ -34,31 +36,50 @@ FEDORA_HOST = 'localhost'
 FEDORA_PORT = '8080'
 FEDORA_PASSWD = 'fedoraAdmin'
 
-def install_fedora():
-    jarfile = os.path.join(os.getcwd(), 'parts', 'fc3.3',
-                           'fcrepo-installer-3.3.jar')
 
-    if not os.path.isfile(jarfile):
-        jarfile = os.path.join(os.getcwd(), 'parts', 'fc3.4', 
-                               'fcrepo-installer-3.4.jar')
+def get_fedora_version():
+    config = ConfigParser()
+    config.read( os.path.join(os.getcwd(), 'buildout.cfg') )
+    return config.get('buildout', 'extends').replace('profiles/', '')
 
-    if not os.path.isfile(jarfile):
-        print >> sys.stderr, ('fcrepo-installer-3.3.jar or '
-                              'fcrepo-installer-3.4.jar is missing, '
-                              'run buildout first')
-        sys.exit(1)
+def check_java_version():
     output = subprocess.Popen(['java','-version'], 
                               stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT
                               ).communicate()[0]
-
     java_version = (output.splitlines() or [''])[0]
-
     if not java_version.startswith('java version "1.6'):
         print >> sys.stderr, ('can not find java, or wrong version')
         sys.exit(1)
+   
+
+def install_fedora():
+    base_dir = os.path.join(os.getcwd(), 'parts')
+
+    if get_fedora_version() == 'fedora-3.3.cfg':
+        jarfile = os.path.join(base_dir, 'fc3.3', 'fcrepo-installer-3.3.jar')
+        if not os.path.isfile(jarfile):
+            print >> sys.stderr, ('fcrepo-installer-3.3.jar is missing, '
+                                  'run buildout first')
+            sys.exit(1)
+        fedora_path = os.path.join(base_dir, 'fedora-3.3').replace('\\','/')
+
+    elif get_fedora_version() == 'fedora-3.4.cfg':
+        jarfile = os.path.join(base_dir, 'fc3.4', 'fcrepo-installer-3.4.jar')
+        if not os.path.isfile(jarfile):
+            print >> sys.stderr, ('fcrepo-installer-3.4444.jar is missing, '
+                                  'run buildout first')
+            sys.exit(1)
+        fedora_path = os.path.join(base_dir, 'fedora-3.4').replace('\\','/')
+
+    else:
+        print >> sys.stderr, ('fcrepo-installer-3.3.jar or '
+                              'fcrepo-installer-3.4.jar is missing, '
+                              'run buildout first')
+        sys.exit(1)
+
+    check_java_version()
     
-    fedora_path = os.path.join(os.getcwd(), 'parts', 'fedora').replace('\\','/')
     install_props = FEDORA_INSTALL_PROPERTIES % {'host': FEDORA_HOST,
                                                  'port': FEDORA_PORT,
                                                  'passwd': FEDORA_PASSWD,
@@ -69,8 +90,16 @@ def install_fedora():
     os.system('java -jar "%s" "%s"' % (jarfile, fp.name))
     os.remove(fp.name)
 
+
 def start_fedora():
-    fedora_path = os.path.join(os.getcwd(), 'parts', 'fedora')
+    if get_fedora_version() == 'fedora-3.3.cfg':
+        fedora_path = os.path.join(os.getcwd(), 'parts', 'fedora-3.3')
+    elif get_fedora_version() == 'fedora-3.4.cfg':
+        fedora_path = os.path.join(os.getcwd(), 'parts', 'fedora-3.4')
+    else:
+        print >> sys.stderr, ('Something went wrong, sorry...')
+        sys.exit(1)
+
     if sys.platform.startswith('win'):
         os.environ['FEDORA_HOME'] = fedora_path
         os.environ['CATALINA_HOME'] = os.path.join(fedora_path,'tomcat')
@@ -81,3 +110,4 @@ def start_fedora():
                'sh "%(path)s/tomcat/bin/catalina.sh" run' % 
                {'path': fedora_path})
     os.system(cmd)
+
