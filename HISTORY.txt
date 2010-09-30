@@ -3,6 +3,9 @@ FCRepo Changes
 
 1.0 (2010-09-30)
 ----------------
+ 
+   - Added support for Fedora3.4
+   - Changed contact info, switched from Subversion to Mercurial
 
 Changes
 ~~~~~~~
