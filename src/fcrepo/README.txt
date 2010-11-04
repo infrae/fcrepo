@@ -578,8 +578,8 @@ but assume that all the methods have unique names.
   ...
   </html>
 
-Searching Objects - 1
-~~~~~~~~~~~~~~~~~~~~~
+Searching Objects
+~~~~~~~~~~~~~~~~~
 
 Fedora comes with 2 search functionalities: a fielded query search and a simple query search.
 They both search data from the `DC` datastream and the Fedora object properties. 
