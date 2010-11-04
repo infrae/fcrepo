@@ -278,8 +278,10 @@ class FedoraClient(object):
                     value['type'] = 'literal'
                     if isinstance(el.text, unicode):
                         value['value'] = el.text
-                    else:
+                    elif el.text:
                         value['value'] = el.text.decode('utf8')
+                    else:
+                        value['value'] = u''
                     datatype = el.attrib.get('datatype')
                     lang = el.attrib.get('lang')
                     if datatype:
