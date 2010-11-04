@@ -16,8 +16,9 @@ WADL file that comes with Fedora so it offers support for the
 complete REST API.
 On top of that a more highlevel abstraction is written, which will be
 demonstrated in this `doctest`_.
-This package has been written for FedoraCommons 3.3, it has not been tested
-with older versions. REST API documentation can be found in the `Fedora wiki`_.
+This package has been written for FedoraCommons 3.3 and 3.4, it has not been 
+tested with older versions. REST API documentation can be found in the 
+`Fedora wiki`_.
 
 
 This package can be installed using buildout which will also fetch the
