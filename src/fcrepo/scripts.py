@@ -42,16 +42,21 @@ def get_fedora_version():
     config.read( os.path.join(os.getcwd(), 'buildout.cfg') )
     return config.get('buildout', 'extends').replace('profiles/', '')
 
+
 def check_java_version():
-    output = subprocess.Popen(['java','-version'], 
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT
-                              ).communicate()[0]
-    java_version = (output.splitlines() or [''])[0]
-    if not java_version.startswith('java version "1.6'):
-        print >> sys.stderr, ('can not find java, or wrong version')
+    try:
+        output = subprocess.Popen(['java','-version'],    
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT
+                                 ).communicate()[0]
+        java_version = (output.splitlines() or [''])[0]
+        if not java_version.startswith('java version "1.6'):
+            print >> sys.stderr, ('wrong version of java')
+            sys.exit(1)
+    except:
+        print >> sys.stderr, ('java not installed')
         sys.exit(1)
-   
+
 
 def install_fedora():
     base_dir = os.path.join(os.getcwd(), 'parts')

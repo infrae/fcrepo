@@ -9,6 +9,7 @@ Developers
 Jasper Op de Coul <jasper@infrae.com>
 Govert Buijs <govert@infrae.com>
 Owen Nelson <onelson@gmail.com>
+Steen Manniche <steen@manniche.net>
 (this could be you!)
 
 Thanks to
@@ -25,6 +26,10 @@ examples.
 
 Many thanks go to Hans Verster <verster@daz.eur.nl> at the Erasmus
 University Rotterdam for his vision and support.
+
+Thanks to Owen Nelson <onelson@gmail.com> for his Windows compatibility patches.
+
+Thanks to Steen Manniche <steen@manniche.net> for his searchObject patch.
 
 .. _Technial University Delft: http://tudelft.nl/
 .. _duraspace connection code: http://bitbucket.org/epoz/duraspace/

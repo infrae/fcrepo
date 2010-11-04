@@ -127,7 +127,7 @@ You'll get an error if the object does not exist:
   >>> obj = client.getObject(u'foo:bar')
   Traceback (most recent call last):
   ...
-  FedoraConnectionException: ...no path in db registry for [foo:bar]
+  FedoraConnectionException: ...HTTP code=404, Reason=Not Found...
 
 
 Deleting Objects
@@ -142,7 +142,7 @@ or by passing the pid to the deleteObject method on the client.
   >>> o = client.getObject(pid)
   Traceback (most recent call last):
   ...
-  FedoraConnectionException: ...no path in db registry for [foo:...]
+  FedoraConnectionException: ...HTTP code=404, Reason=Not Found...
 
 Note that in most cases you don't want to delete an object. It's better to
 set the state of the object to `deleted`. More about this in the next section.
@@ -578,12 +578,13 @@ but assume that all the methods have unique names.
   ...
   </html>
 
-Searching Objects
-~~~~~~~~~~~~~~~~~
+Searching Objects - 1
+~~~~~~~~~~~~~~~~~~~~~
 
-Fedora comes with simple search functionality based on data from 
-the `DC` datastream and the Fedora object properties.
-The following properties can be used to search on:
+Fedora comes with 2 search functionalities: a fielded query search and a simple query search.
+They both search data from the `DC` datastream and the Fedora object properties. 
+
+The fielded search query can search on the following fields:
 
  * cDate  
  * contributor     
@@ -661,6 +662,13 @@ To illustrate this we will query with a batch size of 2:
 As shown we actually get more results then the max of 2, but the client asks
 Fedora for results in batches of 2 while we iterate through the results 
 generator.
+
+When we want to search in all fields, we just have to drop the condition 'pid:',
+and specify 'terms=True'. The search is case-insensitive, and use * or ? as wildcard.
+
+    >>> client.searchObjects(u'searchtest*', ['pid', 'label'], terms=True)
+    <generator object searchObjects at ...>
+
 
 RDF Index Search
 ~~~~~~~~~~~~~~~~

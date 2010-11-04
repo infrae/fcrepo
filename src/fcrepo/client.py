@@ -193,7 +193,7 @@ class FedoraClient(object):
         return request.submit(**params)
 
         
-    def searchObjects(self, query, fields, maxResults=10):
+    def searchObjects(self, query, fields, terms=False, maxResults=10):
         field_params = {}
         assert isinstance(fields, list)
         for field in fields:
@@ -208,14 +208,25 @@ class FedoraClient(object):
             request.undocumented_params = field_params
 
             if token:
-                response = request.submit(query=query,
-                                          sessionToken=token,
-                                          maxResults=maxResults,
-                                          resultFormat=u'text/xml')
+                if terms:
+                    response = request.submit(terms=query,
+                                              sessionToken=token,
+                                              maxResults=maxResults,
+                                              resultFormat=u'text/xml')
+                else:
+                    response = request.submit(query=query,
+                                              sessionToken=token,
+                                              maxResults=maxResults,
+                                              resultFormat=u'text/xml')
             else:
-                response = request.submit(query=query,
-                                          maxResults=maxResults,
-                                          resultFormat=u'text/xml')
+                if terms:
+                    response = request.submit(terms=query,
+                                              maxResults=maxResults,
+                                              resultFormat=u'text/xml')
+                else:
+                    response = request.submit(query=query,
+                                              maxResults=maxResults,
+                                              resultFormat=u'text/xml')
 
             xml = response.read()
             response.close()
@@ -232,7 +243,7 @@ class FedoraClient(object):
 
                 for child in result:
                     field_name = child.tag.split('}')[-1].decode('utf8')
-                    value = child.text
+                    value = child.text or u''
                     if not isinstance(value, unicode):
                         value = value.decode('utf8')
                     data[field_name].append(value)
